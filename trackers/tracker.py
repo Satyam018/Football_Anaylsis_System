@@ -1,3 +1,4 @@
+import numpy as np
 from ultralytics import YOLO
 import supervision as sv
 import pickle as pk
@@ -34,9 +35,6 @@ class Tracker:
 
             # Track object
             detection_tracks = self.tracker.update_with_detections(detection_supervision)
-            # print(detections)
-            # print("""""""""""""""""""""""""""""""""""")
-            # print(detection_tracks)
             tracks['players'].append({})
             tracks['referees'].append({})
             tracks['ball'].append({})
@@ -82,18 +80,59 @@ class Tracker:
             for track_id, player_data in player_dict.items():
                 bbox = player_data['bbox']
                 frame = self.draw_ellipse(frame, bbox, (0, 255, 0), track_id)
-                output_frames.append(frame)
+
+            for _, referee_data in referee_dict.items():
+                bbox = referee_data['bbox']
+                frame = self.draw_ellipse(frame, bbox, (120, 110, 255))
+
+            for track_id,ball in ball_dict.items():
+                bbox = ball['bbox']
+                print(bbox)
+                frame = self.draw_triangle(frame, bbox, (140, 210, 255))
+
+            output_frames.append(frame)
+
         return output_frames
 
-    def draw_ellipse(self, frame, bbox, color, track_id):
+    def draw_ellipse(self, frame, bbox, color, track_id=None):
         y2 = int(bbox[3])
         x_center, _ = get_center(bbox)
         width = get_width(bbox)
 
-
         cv2.ellipse(frame, center=(x_center, y2),
-                    axes=(int(width), int(0.40 * width)),angle=0,
-                    startAngle=45, endAngle=135,
-                   color=color,thickness=2,lineType=cv2.LINE_4 )
+                    axes=(int(width), int(0.40 * width)), angle=0,
+                    startAngle=-45, endAngle=235,
+                    color=color, thickness=2, lineType=cv2.LINE_4)
+
+        rec_width = 40
+        rec_height = 20
+        x1_rec = x_center - rec_width // 2
+        x2_rec = x_center + rec_width // 2
+        y1_rec = y2 - rec_height // 2 + 17
+        y2_rec = y2 + rec_height // 2 + 17
+
+        if track_id is not None:
+            cv2.rectangle(frame, (int(x1_rec), int(y1_rec)), (int(x2_rec), int(y2_rec)),
+                          color, cv2.FILLED)
+
+            x1_text = x1_rec + 12
+            if track_id > 99:
+                x1_text -= 10
+
+            cv2.putText(frame, str(track_id), (int(x1_text), int(y1_rec + 12)), cv2.FONT_HERSHEY_COMPLEX,
+                        0.6, (0, 0, 0), 2)
+        return frame
+
+    def draw_triangle(self, frame, bbox, color):
+        y = int(bbox[1])
+        x,_ = get_center(bbox)
+        traingle_points = np.array([
+            [x, y],
+            [x - 15, y - 22],
+            [x + 15, y + 20]]
+        )
+
+        cv2.drawContours(frame, [traingle_points], 0, color, cv2.FILLED)
+        cv2.drawContours(frame, [traingle_points], 0, (0,0,0), 2)
 
         return frame
