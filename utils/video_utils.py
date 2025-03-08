@@ -17,6 +17,7 @@ def save_video(video_frames,video_path):
     format=cv2.VideoWriter_fourcc(*'XVID')
     video_writer=cv2.VideoWriter(video_path,format,24,(video_frames[0].shape[1],video_frames[0].shape[0]))
     for frame in video_frames:
+        print(frame)
         video_writer.write(frame)
 
     return video_writer.release()
