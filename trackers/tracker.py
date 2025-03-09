@@ -78,8 +78,9 @@ class Tracker:
 
             # draw playes
             for track_id, player_data in player_dict.items():
+                color=player_data.get('team_color',(0,255,0))
                 bbox = player_data['bbox']
-                frame = self.draw_ellipse(frame, bbox, (0, 255, 0), track_id)
+                frame = self.draw_ellipse(frame, bbox, color, track_id)
 
             for _, referee_data in referee_dict.items():
                 bbox = referee_data['bbox']
@@ -133,8 +134,6 @@ class Tracker:
         ],np.int32
         )
         traingle_points = traingle_points.reshape((-1, 1, 2))
-        # cv2.circle(frame, (x, y), 5, (0, 0, 0), cv2.FILLED)
-
         cv2.fillPoly(frame, [traingle_points],  color)
         cv2.drawContours(frame, [traingle_points], 0, (0,0,0), 2)
 
